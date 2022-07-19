@@ -43,7 +43,7 @@ This project was developed using the following technologies:
 - [tailwindcss](https://tailwindcss.com/)
 - [phosphor-react](https://phosphoricons.com/)
 - [date-fns](https://date-fns.org/)
-- [VS Code][vscode] with [EditorConfig][vceditconfig] and [ESLint][vceslint]
+- [vs code][vscode] with [editorConfig][vceditconfig] and [esLint][vceslint]
 
 ## :memo: License
 
