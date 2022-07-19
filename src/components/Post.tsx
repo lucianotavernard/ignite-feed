@@ -86,7 +86,7 @@ export function Post({ id, author, content, publishedAt }: PostProps) {
   }, [])
 
   return (
-    <article className="bg-[#202024] rounded-md w-full p-8 mb-5">
+    <article className="bg-[#202024] rounded-md w-full p-4 md:p-8 mb-5">
       <header className="flex justify-between mb-5">
         <div className="flex">
           <Avatar hasBorder src={author.avatarUrl} alt={author.name} />
