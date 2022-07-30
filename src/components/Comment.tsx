@@ -1,75 +1,58 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import { ThumbsUp, Trash } from 'phosphor-react'
 
-import { format, formatDistanceToNow, parseISO } from 'date-fns'
+import { format, formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-
-import { api } from '../services/api'
 
 import { Avatar } from './Avatar'
 import { Modal } from './Modal'
 
 type CommentProps = {
   comment: {
-    id: number
+    id: string
     author: {
       name: string
       role: string
       avatarUrl: string
     }
     content: string
-    publishedAt: string
+    publishedAt: Date
+    totalApplauses: number
   }
-  onDelete: (id: number) => void
+  onDelete: (commentId: string) => void
 }
 
 export function Comment({ comment, onDelete }: CommentProps) {
-  const { id, author, content, publishedAt } = comment
-
-  const parsedPublishedAt = parseISO(publishedAt)
+  const { id: commentId, author, content, publishedAt } = comment
 
   const [totalApplauses, setTotalApplauses] = useState<number>(0)
   const [modalVisible, setModalVisible] = useState(false)
 
-  async function handleCreateNewApplause() {
-    const createApplause = {
-      publishedAt: new Date().toISOString(),
-      commentId: id,
-      author
-    }
-
-    await api.post('applauses', createApplause)
-
+  function handleCreateNewApplause() {
     setTotalApplauses((prevTotalApplauses) => prevTotalApplauses + 1)
   }
 
   function handleRemoveApplause() {
-    onDelete(id)
+    onDelete(commentId)
   }
 
   const publishedDateFormatted = useMemo(
     () =>
-      format(parsedPublishedAt, "d 'de' LLLL 'às' HH:mm'h'", {
+      format(new Date(publishedAt), "d 'de' LLLL 'às' HH:mm'h'", {
         locale: ptBR
       }),
-    [parsedPublishedAt]
+    [publishedAt]
   )
 
   const publishedDateRelativeToNow = useMemo(
     () =>
-      formatDistanceToNow(parsedPublishedAt, {
+      formatDistanceToNow(new Date(publishedAt), {
         locale: ptBR,
         addSuffix: true
       }),
-    [parsedPublishedAt]
+    [publishedAt]
   )
-
-  useEffect(() => {
-    api.get('applauses').then((response) => {
-      setTotalApplauses(response.data.length)
-    })
-  }, [])
 
   return (
     <>
@@ -86,7 +69,7 @@ export function Comment({ comment, onDelete }: CommentProps) {
 
                 <time
                   title={publishedDateFormatted}
-                  dateTime={parsedPublishedAt.toISOString()}
+                  dateTime={new Date(publishedAt).toISOString()}
                   className="text-xs text-[#8D8D99]"
                 >
                   {publishedDateRelativeToNow}

@@ -1,89 +1,78 @@
-import { FormEvent, useEffect, useMemo, useState } from 'react'
+import { FormEvent, useMemo, useState } from 'react'
 
-import { format, formatDistanceToNow, parseISO } from 'date-fns'
+import { format, formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-
-import { api } from '../services/api'
 
 import { Avatar } from './Avatar'
 import { Comment } from './Comment'
 
 type PostProps = {
-  id: number
+  id: string
   author: {
     name: string
     role: string
     avatarUrl: string
   }
   content: Array<{ type: string; content: string }>
-  publishedAt: string
+  publishedAt: Date
 }
 
 type Comment = {
-  id: number
+  id: string
   author: {
     name: string
     role: string
     avatarUrl: string
   }
   content: string
-  publishedAt: string
+  publishedAt: Date
+  totalApplauses: number
 }
 
-export function Post({ id, author, content, publishedAt }: PostProps) {
-  const parsedPublishedAt = parseISO(publishedAt)
-
+export function Post({ id: postId, author, content, publishedAt }: PostProps) {
   const [newComment, setNewComment] = useState('')
   const [comments, setComments] = useState<Array<Comment>>([])
 
-  async function handleCreateNewComment(event: FormEvent) {
+  function handleCreateNewComment(event: FormEvent) {
     event.preventDefault()
 
+    const id = String(new Date().getTime())
+
     const createComment = {
-      publishedAt: new Date().toISOString(),
+      totalApplauses: 0,
+      publishedAt: new Date(),
       content: newComment,
-      postId: id,
-      author
+      postId: postId,
+      author,
+      id
     }
 
-    await api.post('comments', createComment)
-
-    setComments((prevComments) => [
-      { id: prevComments.length + 1, ...createComment },
-      ...prevComments
-    ])
+    setComments((prevComments) => [createComment, ...prevComments])
+    setNewComment('')
   }
 
-  function handleDeleteComment(id: number) {
-    api.delete(`comments/${id}`)
-
+  function handleDeleteComment(commentId: string) {
     setComments((prevComments) =>
-      prevComments.filter((comment) => comment.id !== id)
+      prevComments.filter((comment) => comment.id !== commentId)
     )
   }
 
   const publishedDateFormatted = useMemo(
     () =>
-      format(parsedPublishedAt, "d 'de' LLLL 'às' HH:mm'h'", {
+      format(new Date(publishedAt), "d 'de' LLLL 'às' HH:mm'h'", {
         locale: ptBR
       }),
-    [parsedPublishedAt]
+    [publishedAt]
   )
 
   const publishedDateRelativeToNow = useMemo(
     () =>
-      formatDistanceToNow(parsedPublishedAt, {
+      formatDistanceToNow(new Date(publishedAt), {
         locale: ptBR,
         addSuffix: true
       }),
-    [parsedPublishedAt]
+    [publishedAt]
   )
-
-  useEffect(() => {
-    api.get('comments').then((response) => {
-      setComments(response.data)
-    })
-  }, [])
 
   return (
     <article className="bg-[#202024] rounded-md w-full p-4 md:p-8 mb-5">
@@ -103,7 +92,7 @@ export function Post({ id, author, content, publishedAt }: PostProps) {
         <div className="flex items-center justify-center">
           <time
             title={publishedDateFormatted}
-            dateTime={parsedPublishedAt.toISOString()}
+            dateTime={new Date(publishedAt).toISOString()}
             className="text-sm text-[#8D8D99]"
           >
             {publishedDateRelativeToNow}
